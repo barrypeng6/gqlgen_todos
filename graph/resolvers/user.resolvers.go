@@ -9,6 +9,7 @@ import (
 	"math/rand"
 
 	"github.com/barrypeng6/gqlgen-todos/graph/generated"
+	"github.com/barrypeng6/gqlgen-todos/graph/helpers"
 	"github.com/barrypeng6/gqlgen-todos/graph/model"
 )
 
@@ -23,14 +24,8 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 
 func (r *queryResolver) Users(ctx context.Context, first *int, after *string, last *int, before *string) (*model.UserConnection, error) {
 	// check condition
-	if first == nil && after != nil {
-		panic("after must be with first")
-	}
-	if (last != nil && before == nil) || (last == nil && before != nil) {
-		panic("last and before must be used together")
-	}
-	if first != nil && after != nil && last != nil && before != nil {
-		panic("incorrect arguments usage")
+	if err := helpers.CheckConnectionArgs(first, after, last, before); err != nil {
+		return nil, err
 	}
 
 	var userEdges []*model.UserEdge
@@ -65,16 +60,11 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 
 func (r *userResolver) Todos(ctx context.Context, obj *model.User, first *int, after *string, last *int, before *string) (*model.TodoConnection, error) {
 	// check condition
-	if first == nil && after != nil {
-		panic("after must be with first")
-	}
-	if (last != nil && before == nil) || (last == nil && before != nil) {
-		panic("last and before must be used together")
-	}
-	if first != nil && after != nil && last != nil && before != nil {
-		panic("incorrect arguments usage")
+	if err := helpers.CheckConnectionArgs(first, after, last, before); err != nil {
+		return nil, err
 	}
 
+	// DB operation start
 	var todoEdges []*model.TodoEdge
 	if first != nil {
 		for i, todo := range r.MTodos {
@@ -85,7 +75,8 @@ func (r *userResolver) Todos(ctx context.Context, obj *model.User, first *int, a
 				})
 			}
 		}
-	}
+	} // DB operation end
+
 	return &model.TodoConnection{
 		PageInfo: &model.PageInfo{
 			HasNextPage:     false,

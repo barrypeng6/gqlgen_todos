@@ -9,6 +9,7 @@ import (
 	"math/rand"
 
 	"github.com/barrypeng6/gqlgen-todos/graph/generated"
+	"github.com/barrypeng6/gqlgen-todos/graph/helpers"
 	"github.com/barrypeng6/gqlgen-todos/graph/model"
 )
 
@@ -33,14 +34,8 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) 
 
 func (r *queryResolver) Todos(ctx context.Context, first *int, after *string, last *int, before *string) (*model.TodoConnection, error) {
 	// check condition
-	if first == nil && after != nil {
-		panic("after must be with first")
-	}
-	if (last != nil && before == nil) || (last == nil && before != nil) {
-		panic("last and before must be used together")
-	}
-	if first != nil && after != nil && last != nil && before != nil {
-		panic("incorrect arguments usage")
+	if err := helpers.CheckConnectionArgs(first, after, last, before); err != nil {
+		return nil, err
 	}
 
 	var todoEdges []*model.TodoEdge
