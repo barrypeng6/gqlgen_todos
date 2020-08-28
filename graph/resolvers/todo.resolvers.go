@@ -14,7 +14,7 @@ import (
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
 	hasUser := false
-	for _, user := range r.users {
+	for _, user := range r.MUsers {
 		if user.ID == input.UserID {
 			hasUser = true
 		}
@@ -25,7 +25,7 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) 
 			ID:     fmt.Sprintf("todo_%d", rand.Int()),
 			UserID: input.UserID,
 		}
-		r.todos = append(r.todos, todo)
+		r.MTodos = append(r.MTodos, todo)
 		return todo, nil
 	}
 	return nil, fmt.Errorf("No this user (%s)", input.UserID)
@@ -45,7 +45,7 @@ func (r *queryResolver) Todos(ctx context.Context, first *int, after *string, la
 
 	var todoEdges []*model.TodoEdge
 	if first != nil {
-		for i, todo := range r.todos {
+		for i, todo := range r.MTodos {
 			if i < *first {
 				todoEdges = append(todoEdges, &model.TodoEdge{
 					Cursor: "",
@@ -65,7 +65,7 @@ func (r *queryResolver) Todos(ctx context.Context, first *int, after *string, la
 
 func (r *todoResolver) User(ctx context.Context, obj *model.Todo) (*model.User, error) {
 	var user *model.User
-	for _, _user := range r.users {
+	for _, _user := range r.MUsers {
 		if _user.ID == obj.UserID {
 			user = _user
 		}

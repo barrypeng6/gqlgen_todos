@@ -8,6 +8,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/barrypeng6/gqlgen-todos/graph/generated"
+	"github.com/barrypeng6/gqlgen-todos/graph/model"
 	"github.com/barrypeng6/gqlgen-todos/graph/resolvers"
 )
 
@@ -19,7 +20,26 @@ func main() {
 		port = defaultPort
 	}
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{}}))
+	// Mock data
+	users := []*model.User{
+		&model.User{
+			ID:   "user_1234",
+			Name: "Hello",
+		},
+	}
+	todos := []*model.Todo{
+		&model.Todo{
+			ID:     "todo_1234",
+			Text:   "Read books",
+			Done:   false,
+			UserID: "user_1234",
+		},
+	}
+	resolvers := &resolvers.Resolver{
+		MUsers: users,
+		MTodos: todos,
+	}
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers}))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)

@@ -17,7 +17,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 		ID:   fmt.Sprintf("user_%d", rand.Int()),
 		Name: input.Name,
 	}
-	r.users = append(r.users, user)
+	r.MUsers = append(r.MUsers, user)
 	return user, nil
 }
 
@@ -35,7 +35,7 @@ func (r *queryResolver) Users(ctx context.Context, first *int, after *string, la
 
 	var userEdges []*model.UserEdge
 	if first != nil {
-		for i, user := range r.users {
+		for i, user := range r.MUsers {
 			if i < *first {
 				userEdges = append(userEdges, &model.UserEdge{
 					Cursor: "",
@@ -55,7 +55,7 @@ func (r *queryResolver) Users(ctx context.Context, first *int, after *string, la
 
 func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
 	var user *model.User
-	for _, _user := range r.users {
+	for _, _user := range r.MUsers {
 		if _user.ID == id {
 			user = _user
 		}
@@ -77,7 +77,7 @@ func (r *userResolver) Todos(ctx context.Context, obj *model.User, first *int, a
 
 	var todoEdges []*model.TodoEdge
 	if first != nil {
-		for i, todo := range r.todos {
+		for i, todo := range r.MTodos {
 			if i < *first {
 				todoEdges = append(todoEdges, &model.TodoEdge{
 					Cursor: "",
