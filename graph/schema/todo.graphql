@@ -1,0 +1,34 @@
+type Todo {
+  id: ID!
+  text: String!
+  done: Boolean!
+  user: User!
+}
+
+type TodoEdge {
+    cursor: String!
+    node: Todo!
+}
+
+type TodoConnection {
+    edges: [TodoEdge!]!
+    pageInfo: PageInfo!
+}
+
+extend type Query {
+  todos(
+    first: Int
+    after: String
+    last: Int
+    before: String
+  ): TodoConnection!
+}
+
+input NewTodo {
+  text: String!
+  userId: String!
+}
+
+extend type Mutation {
+  createTodo(input: NewTodo!): Todo!
+}
