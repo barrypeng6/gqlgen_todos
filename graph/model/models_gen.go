@@ -2,6 +2,11 @@
 
 package model
 
+type LoginInput struct {
+	UserID   string `json:"userID"`
+	Password string `json:"password"`
+}
+
 type NewTodo struct {
 	Text   string `json:"text"`
 	UserID string `json:"userId"`

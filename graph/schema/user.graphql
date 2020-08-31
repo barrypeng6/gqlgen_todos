@@ -1,5 +1,7 @@
 type User {
   id: ID!
+  email: String!
+  password: String!
   name: String!
   todos(
     first: Int
@@ -33,6 +35,14 @@ input NewUser {
   name: String!
 }
 
-extend type Mutation {
-  createUser(input: NewUser!): User!
+input LoginInput {
+    userID: ID!
+    password: String!
 }
+
+extend type Mutation {
+  createUser(input: NewUser!): User! @isAuthenticated
+  login(input: LoginInput): String!
+}
+
+directive @isAuthenticated on FIELD_DEFINITION

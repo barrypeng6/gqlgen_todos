@@ -1,15 +1,15 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/barrypeng6/gqlgen-todos/graph/auth"
 	"github.com/barrypeng6/gqlgen-todos/graph/generated"
-	"github.com/barrypeng6/gqlgen-todos/graph/model"
 	"github.com/barrypeng6/gqlgen-todos/graph/resolvers"
+	"github.com/labstack/echo/v4"
 )
 
 const defaultPort = "8080"
@@ -20,30 +20,21 @@ func main() {
 		port = defaultPort
 	}
 
-	// Mock data
-	users := []*model.User{
-		&model.User{
-			ID:   "user_1234",
-			Name: "Hello",
-		},
-	}
-	todos := []*model.Todo{
-		&model.Todo{
-			ID:     "todo_1234",
-			Text:   "Read books",
-			Done:   false,
-			UserID: "user_1234",
-		},
-	}
-	resolvers := &resolvers.Resolver{
-		MUsers: users,
-		MTodos: todos,
-	}
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers}))
+	e := echo.New()
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	// e.Use(middleware.Recover())
+	// e.Use(middleware.Logger())
+	// e.Use(middleware.Gzip())
+	// e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
+	// 	SigningKey: []byte("my_secret"),
+	// }))
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	e.GET("/health", func(c echo.Context) error {
+		return c.NoContent(http.StatusOK)
+	})
+
+	e.Any("/", echo.WrapHandler(playground.Handler("GraphQL Playground", "/query")))
+	e.Any("/query", echo.WrapHandler(auth.Middleware(handler.NewDefaultServer(generated.NewExecutableSchema(resolvers.CreateRootResolver())))))
+
+	e.Logger.Fatal(e.Start(":" + port))
 }

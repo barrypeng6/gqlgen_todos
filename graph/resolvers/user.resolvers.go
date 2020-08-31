@@ -7,19 +7,52 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"time"
 
+	"github.com/barrypeng6/gqlgen-todos/graph/auth"
 	"github.com/barrypeng6/gqlgen-todos/graph/generated"
 	"github.com/barrypeng6/gqlgen-todos/graph/helpers"
 	"github.com/barrypeng6/gqlgen-todos/graph/model"
+	jwt "github.com/dgrijalva/jwt-go"
+	echo "github.com/labstack/echo/v4"
 )
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
+	// log.Println(">>>>>>> ", ctx.Value(auth.UserCtxKey))
 	user := &model.User{
 		ID:   fmt.Sprintf("user_%d", rand.Int()),
 		Name: input.Name,
 	}
 	r.MUsers = append(r.MUsers, user)
 	return user, nil
+}
+
+func (r *mutationResolver) Login(ctx context.Context, input *model.LoginInput) (string, error) {
+	userID := input.UserID
+	password := input.Password
+
+	// TODO: check user id & password
+	if userID != "user_1234" || password != "ggyy" {
+		return "", echo.ErrUnauthorized
+	}
+
+	// Set claims
+	claims := auth.CustomClaims{
+		UserID: userID,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
+			Issuer:    "hello",
+		},
+	}
+	// Create token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	signedToken, err := token.SignedString([]byte("my_secret"))
+	if err != nil {
+		return "", err
+	}
+
+	return signedToken, nil
 }
 
 func (r *queryResolver) Users(ctx context.Context, first *int, after *string, last *int, before *string) (*model.UserConnection, error) {
